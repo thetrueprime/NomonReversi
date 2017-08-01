@@ -1,0 +1,149 @@
+<html>
+ 
+
+
+</body>
+</html>
+<body>
+
+<canvas id="myCanvas" width="1200" height="600" style="border:1px solid #000000;">
+</canvas> 
+
+<script>
+
+var stage = 0;
+var gridsize = "8x8";
+var madmode = "no";
+var fullServers = [];
+  var elem = document.getElementById("myCanvas");   
+  var id = setInterval(loop, 1000);
+  findServer(0);
+  function loop(){
+  	var ctx = elem.getContext("2d");
+	ctx.fillStyle = "#EEEEFF";
+	ctx.fillRect(0,0,1200,600); 
+	ctx.fillStyle = "#FF0000";
+	ctx.font="30px Arial";
+	switch(stage){
+		case 0:
+			ctx.fillText("Finding you a game...",450,300);
+			break;
+		case 1:
+			ctx.fillText("Searching..",450,300);
+			break;
+		case 2:
+			ctx.fillText("Joining a game!",450,300);
+			break;
+		case 3:
+			ctx.fillText("Starting a new game...",450,300);
+			break;	
+		case 4:
+			ctx.fillText("Servers are Full, please come back later.",450,300);
+			break;
+		case 5:
+			ctx.fillText("Joining new server (waiting for player)!",450,300);
+			break;
+	}
+	//stage+=1;
+	ctx.fill();
+  }
+var gameinfo = "";
+function findServer(gameslots){
+	//for(i=0;i<10;i++){
+		console.log("Opening :"+"/"+gameslots+"_game/gameinfo.txt");
+		OpenFile("/"+gameslots+"_game/gameinfo.txt",gameslots);
+	//}
+	
+}	
+var count = 0;
+function getUrlParam(param)
+{
+  param = param.replace(/([\[\](){}*?+^$.\\|])/g, "\\$1");
+  var regex = new RegExp("[?&]" + param + "=([^&#]*)");
+  var url   = decodeURIComponent(window.location.href);
+  var match = regex.exec(url);
+  return match ? match[1] : "";
+}
+
+function OpenFile(filename,id) {
+   var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+	console.log("State change status:"+this.status);
+    if (this.readyState == 4 && this.status == 200) {
+     	gameinfo = this.responseText;
+	
+	var result = gameinfo.split("\n");
+	if(result[0] == "Ready" && result[2]=="online"){
+		stage = 2;
+		
+		joinServer(id,result[1],result[3],result[4]);
+	}else{
+		if(result[0]=="Full"||(!(result[2]=="online"))){
+			fullServers.push(id);
+		}
+		if(id<10){
+			stage = 1;
+			findServer(id+1);
+		}else{
+			stage = 3;
+			startServer();
+		}
+		
+	}
+    }
+	if(this.readyState == 4 && (this.status==404||this.status==0)){
+		count++;
+		console.log(count+"No file found");
+		if(id<9){
+			stage = 1;
+			findServer(id+1);
+		}else{
+			stage = 3;
+			startServer();
+		}
+	}
+  };
+  xhttp.open("GET", filename, true);
+  xhttp.send();
+  console.log("GET request made");
+}
+function startServer(){
+	for(i=0;i<10;i++){
+		if(!(fullServers.indexOf(i)>=0)){
+			console.log(i+" was good");
+			startServerHere(i);
+			i=11;
+		}else{
+			console.log(i+" was full");
+		}
+	}
+}
+function getSettings(){
+var toreturn = "";
+	toreturn+=getUrlParam("name")+"\n";
+	toreturn+=getUrlParam("playmode")+"\n";
+	toreturn+=getUrlParam("gridsizemode")+"\n";
+	toreturn+=getUrlParam("madmode")+"\n";
+return toreturn;
+}
+function startServerHere(id){
+	var settings = getSettings();
+	post("Ready\n"+settings,id+"_game/","gameinfo");
+	window.location.replace("/gamepage.html?name="+getUrlParam("name")+"&gameid="+id+"&turn=1"+"&nomonmode="+getUrlParam("nomonmode")+"&colourmode="+getUrlParam("colourmode")+"&playmode="+getUrlParam("playmode")+"&madmode="+getUrlParam("madmode")+"&gridsizemode="+getUrlParam("gridsizemode"));
+	stage=5;
+}	
+function joinServer(id,othername,gridsizemode,madmode){
+	post("Full\n",id+"_game/","gameinfo");
+	window.location.replace("/gamepage.html?name="+getUrlParam("name")+"&gameid="+id+"&turn=2"+"&nomonmode="+getUrlParam("nomonmode")+"&colourmode="+getUrlParam("colourmode")+"&playmode="+getUrlParam("playmode")+"&madmode="+madmode+"&gridsizemode="+gridsizemode);
+	
+}
+function post(data,folder,datalocation) {
+   var xhttp = new XMLHttpRequest();
+   xhttp.open("POST", "save.php", true);
+   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	
+   xhttp.send("data="+data+"&name="+datalocation+"&directory="+folder);
+	console.log("Sent Request: data="+data+"&name="+datalocation+"&directory="+folder);
+}
+</script>
+</html>

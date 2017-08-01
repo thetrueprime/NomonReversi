@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!-- Template by Quackit.com -->
+<!-- Images by various sources under the Creative Commons CC0 license and/or the Creative Commons Zero license. 
+Although you can use them, for a more unique website, replace these images with your own. -->
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>Nomon Reversi</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS: You can use this stylesheet to override any Bootstrap styles and/or apply your own styles -->
+    <link href="css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Custom Fonts from Google -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    <style>
+
+div.transbox {
+  margin: 30px;
+  background-color: #ffffff;
+  opacity: 0.6;
+  filter: alpha(opacity=60); /* For IE8 and earlier */
+}
+
+div.transbox p {
+  margin: 5%;
+  font-weight: bold;
+  color: #000000;
+}
+</style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+
+
+	<!-- Header -->
+    <header>
+	
+        <div class="header-content">
+            <div class="header-content-inner">
+                <h1>Play Multiplayer Reversi now</h1>
+                
+		<form action="/matchfinder.html" method="GET">
+		<input type="text" name="name" class="text-primary" placeholder="Enter a name..." required></input>
+                <input type="submit"  class="btn btn-primary btn-lg" value="Play"></input>
+  <div class="transbox"><p>
+<input type="radio" name="gridsizemode" value="8x8" checked> 
+8x8
+<input type="radio" name="gridsizemode" value="10x10"> 
+10x10
+<br>
+<input type="radio" name="playmode" value="online" checked> 
+Online Multiplayer 
+<input type="radio" name="playmode" value="local"> 
+Local Multiplayer 
+<input type="radio" name="playmode" value="AI"> 
+Against AI (WIP)
+<br>
+<input type="radio" name="nomonmode" value="fillingpie" checked> 
+Filling Up Pie
+<input type="radio" name="nomonmode" value="fillingsquare"> 
+Filling Up Square
+<input type="radio" name="nomonmode" value="expandingcircle"> 
+Expanding and Contracting Circle
+<br>
+<input type="radio" name="colourmode" value="yescolour" checked> 
+Alternating Colour
+<input type="radio" name="colourmode" value="nocolour"> 
+Block Colour
+<br>
+<input type="checkbox" name="madmode" value="mad"> 
+Mad Mode
+</p></div>
+		</form>
+<p id="aboutsection" onmouseover="openabout(this)" onmouseout="closeabout(this)"><b>ABOUT</b></p><br>
+            </div>
+        </div>
+    </header>
+
+	<script>
+		function openabout(x){
+
+		//x.innerHTML =
+alert( "ABOUT\nThis is a project to learn about the click patterns of users. \nLong term, the findings may help users with a disability (that doesn't allow them to use a mouse) to interact with a 2D environment.\nBy using this application, you will be submitting your click pattern, which will be connected to any name you enter.");
+
+		}
+		function closeabout(x){
+
+		//x.innerHTML = "ABOUT";
+
+		}
+	</script>
+
+    <!-- jQuery -->
+    <script src="js/jquery-1.11.3.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="js/jquery.easing.min.js"></script>
+    
+    <!-- Custom Javascript -->
+    <script src="js/custom.js"></script>
+
+</body>
+
+</html>
