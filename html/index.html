@@ -73,11 +73,11 @@ Local Multiplayer
 <input type="radio" name="playmode" value="AI"> 
 Against AI (WIP)
 <br>
-<input type="radio" name="nomonmode" value="fillingpie" checked> 
+<input type="radio" name="nomonmode" id="pies" value="fillingpie" checked> 
 Filling Up Pie
-<input type="radio" name="nomonmode" value="fillingsquare"> 
+<input type="radio" name="nomonmode" id="squares" value="fillingsquare" > 
 Filling Up Square
-<input type="radio" name="nomonmode" value="expandingcircle"> 
+<input type="radio" name="nomonmode" id="circles" value="expandingcircle"> 
 Expanding and Contracting Circle
 <br>
 <input type="radio" name="colourmode" value="yescolour" checked> 
@@ -95,6 +95,42 @@ Mad Mode
     </header>
 
 	<script>
+		//see which animation types are used and block appropriately
+		
+		function get() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					var text = this.responseText;
+					console.log(text);
+					if(!text.includes("none")){
+					var name = "squares";
+					var othe = "circles";
+					var othr = "pies";
+					if(text.includes("circles")){
+						name = "circles"
+						othe = "squares";
+					}
+					
+					if(text.includes("pies")){
+						name = "pies"
+						othr = "squares";
+					}
+					var elem = document.getElementById(name);
+					var othe1 = document.getElementById(othe);		
+					var othr1 = document.getElementById(othr);
+					elem.checked = true;
+					othe1.disabled = true;
+					othr1.disabled = true;
+					//elem
+					}
+				}
+			};
+			xhttp.open("GET", "filelist.php", true);
+			xhttp.send();
+		}
+		get();
+			
 		function openabout(x){
 
 		//x.innerHTML =

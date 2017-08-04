@@ -51,7 +51,7 @@ var gameinfo = "";
 function findServer(gameslots){
 	//for(i=0;i<10;i++){
 		console.log("Opening :"+"/"+gameslots+"_game/gameinfo.txt");
-		OpenFile("/"+gameslots+"_game/gameinfo.txt",gameslots);
+		OpenFile("/"+gameslots+"_game/gameinfo"+".txt",gameslots);
 	//}
 	
 }	
@@ -71,7 +71,8 @@ function OpenFile(filename,id) {
 	console.log("State change status:"+this.status);
     if (this.readyState == 4 && this.status == 200) {
      	gameinfo = this.responseText;
-	
+	console.log("Got to here");
+	console.log("Here is the file:"+gameinfo);
 	var result = gameinfo.split("\n");
 	if(result[0] == "Ready" && result[2]=="online"){
 		stage = 2;
@@ -79,9 +80,21 @@ function OpenFile(filename,id) {
 		joinServer(id,result[1],result[3],result[4]);
 	}else{
 		if(result[0]=="Full"||(!(result[2]=="online"))){
-			fullServers.push(id);
+
+			
+					fullServers.push(id);
+			///if(!result[2]=="online"){
+			//	fullServers.push(id);
+			//}else{
+			//	var d = new Date();
+			//	if(parseInt(result[1])+1200000<d.getTime()){
+			//		console.log("Old game is found");
+			//	}else{
+			//		fullServers.push(id);
+			//	}
+			//}
 		}
-		if(id<10){
+		if(id<100){
 			stage = 1;
 			findServer(id+1);
 		}else{
@@ -94,7 +107,7 @@ function OpenFile(filename,id) {
 	if(this.readyState == 4 && (this.status==404||this.status==0)){
 		count++;
 		console.log(count+"No file found");
-		if(id<9){
+		if(id<99){
 			stage = 1;
 			findServer(id+1);
 		}else{
@@ -108,16 +121,17 @@ function OpenFile(filename,id) {
   console.log("GET request made");
 }
 function startServer(){
-	for(i=0;i<10;i++){
+	for(i=0;i<100;i++){
 		if(!(fullServers.indexOf(i)>=0)){
 			console.log(i+" was good");
 			startServerHere(i);
-			i=11;
+			i=111;
 		}else{
 			console.log(i+" was full");
 		}
 	}
 }
+var d = new Date();
 function getSettings(){
 var toreturn = "";
 	toreturn+=getUrlParam("name")+"\n";
@@ -127,13 +141,20 @@ var toreturn = "";
 return toreturn;
 }
 function startServerHere(id){
+	console.log("Starting server");
 	var settings = getSettings();
-	post("Ready\n"+settings,id+"_game/","gameinfo");
+	postDelete(id+"_game/","1");
+	postDelete(id+"_game/","2");
+	postDelete(id+"_game/","gameinfo");
+	post("Ready\n"+settings+"\n"+d.getTime(),id+"_game/","gameinfo");
 	window.location.replace("/gamepage.html?name="+getUrlParam("name")+"&gameid="+id+"&turn=1"+"&nomonmode="+getUrlParam("nomonmode")+"&colourmode="+getUrlParam("colourmode")+"&playmode="+getUrlParam("playmode")+"&madmode="+getUrlParam("madmode")+"&gridsizemode="+getUrlParam("gridsizemode"));
 	stage=5;
 }	
+
 function joinServer(id,othername,gridsizemode,madmode){
-	post("Full\n",id+"_game/","gameinfo");
+	postDelete(id+"_game/","gameinfo");
+	console.log("Joining Server");
+	post("Full\n"+d.getTime(),id+"_game/","gameinfo");
 	window.location.replace("/gamepage.html?name="+getUrlParam("name")+"&gameid="+id+"&turn=2"+"&nomonmode="+getUrlParam("nomonmode")+"&colourmode="+getUrlParam("colourmode")+"&playmode="+getUrlParam("playmode")+"&madmode="+madmode+"&gridsizemode="+gridsizemode);
 	
 }
@@ -144,6 +165,14 @@ function post(data,folder,datalocation) {
 	
    xhttp.send("data="+data+"&name="+datalocation+"&directory="+folder);
 	console.log("Sent Request: data="+data+"&name="+datalocation+"&directory="+folder);
+}
+function postDelete(folder,datalocation) {
+   var xhttp = new XMLHttpRequest();
+   xhttp.open("POST", "remove.php", true);
+   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	
+   xhttp.send("name="+datalocation+"&directory="+folder);
+	console.log("Sent Request to remove: name="+datalocation+"&directory="+folder);
 }
 </script>
 </html>
