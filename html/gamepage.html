@@ -46,10 +46,15 @@
   <p>Your browser does not support iframes.</p>
 </iframe>*/
 var notsooften = 0;
-	var multiplayer = 1;//0=ai, 1=multi
+	var multiplayer = 1;//0=local, 1=multi 2=ai 
+	var mad = 0;
+	var interval = 1.0;
+	var madstage = 0;
+	var madmodifier= 0;
+	var madphrase= "";
 	if(getUrlParam("playmode")=="local"){multiplayer=0;}
 	if(getUrlParam("playmode")=="AI"){multiplayer=2;}
-
+	
 
 		
 	var ourturn = getUrlParam("turn");
@@ -59,7 +64,10 @@ var boardwidth = 8;
 if(getUrlParam("gridsizemode")=="10x10"){
 	boardwidth = 10;
 }
+if(getUrlParam("madmode")=="mad"){mad=1;boardwidth=16;}
 var ripple = 100;
+var bombripple = 100;
+var bomb = 0;
 var grid = new Array(boardwidth*boardwidth).fill(0);
 var graphdata = new Array(100).fill(0);
 var ourturns = [];
@@ -78,6 +86,15 @@ function toGridSquare(x,y){
 	return x*boardwidth+y;
 
 }
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
 function drawNomon(ctx,x,y,radius,progress){
 
   	var offset = Math.PI/2;
@@ -86,13 +103,18 @@ function drawNomon(ctx,x,y,radius,progress){
 	}
 	
 	var progresstext = ""+progress;
+	if(madmodifier >= 1){
+		ctx.fillStyle = getRandomColor();
+
+	}else{
 	if(getUrlParam("colourmode")=="yescolour"){
 	
 	var tempp = Math.abs(progress-50);
 	tempp+=50;
-	ctx.fillStyle = "#00"+tempp+"00";
+	ctx.fillStyle = "#00"+Math.round(tempp)+"00";
 	}else{
 	ctx.fillStyle = "#00FF00";
+	}
 	}
 	/*
 	if(getProFromProgress(progress)>50){
@@ -101,13 +123,18 @@ function drawNomon(ctx,x,y,radius,progress){
 	*/
 	ctx.beginPath();
 	ctx.moveTo(x,y);
+	gridmultiplier = 600;
+	if(madmodifier == 1){
+		radius = Math.random()*radius*2;
+		gridmultiplier = 600*2*Math.random();
+	}
 	if(clicked == 0){
 		if(getUrlParam("nomonmode")=="fillingpie"){
 		ctx.arc(x,y,radius,-offset,-offset+2*Math.PI*((progress)/100));
 		}else if(getUrlParam("nomonmode")=="expandingcircle"){
 		ctx.arc(x,y,Math.abs(Math.cos(Math.PI*((progress)/100)))*radius,0,2*2*Math.PI);
 		}else if(getUrlParam("nomonmode")=="fillingsquare"){
-		ctx.fillRect(x-300/boardwidth,y-300/boardwidth,600/boardwidth,600*((progress)/100)/boardwidth);
+		ctx.fillRect(x-(gridmultiplier/2)/boardwidth,y-(gridmultiplier/2)/boardwidth,(gridmultiplier)/boardwidth,(gridmultiplier)*((progress)/100)/boardwidth);
 		}
 	}else{
 		ctx.fillStyle = "#0000FF";
@@ -310,6 +337,9 @@ function reactivate(){
 			if(nextsigma<1){nextsigma=1;}
 		}
 
+	//MAD MoDE STUFF>>>>
+	
+	//>>>>
 	nomons = [];
 	var locations = [];
 	var amount = 0;
@@ -333,8 +363,8 @@ function reactivate(){
 		if(grid[t]==0){
 			//console.log("Checking at "+x+","+y);
 			if(makeMove(x,y,turn)){
-				console.log("("+x+","+y+") Valid in:"+validDirection(x,y,turn));
-				console.log("Put Nomon at "+x+","+y);
+				//console.log("("+x+","+y+") Valid in:"+validDirection(x,y,turn));
+				//console.log("Put Nomon at "+x+","+y);
 				locations.push(t);
 				amount++;
 			}
@@ -379,6 +409,7 @@ function reactivate(){
 			var x = ((g-(g%boardwidth))/boardwidth);
 			var y = g%boardwidth;
 			grid[g]=turn;
+			madMode(g);
 			haveMove(x,y,turn);
 			theirturns.push(g);
 			ripple = 1;
@@ -392,6 +423,85 @@ function reactivate(){
 document.body.addEventListener('touchmove', function(event) {
   event.preventDefault();
 }, false); 
+
+function madMode(g){
+	if(mad==1){
+		
+	if(mad==1){
+		madstage++;	
+		console.log(madstage);		
+		switch(madstage){
+			case boardwidth:
+				console.log("Mad stage 1");
+				interval=1;
+				//interval can be changed
+				break;
+			case boardwidth*2:
+				console.log("Mad stage 2");
+				interval=2;
+				madmodifier = 2;
+				break;
+			case boardwidth*3:
+				console.log("Mad stage 3");
+				interval=3;
+				madmodifier = 3;
+				break;
+			case boardwidth*4:
+				madmodifier = 1;
+				console.log("Mad stage 5");
+				break;
+			case boardwidth*5:
+				gameover=1;
+				console.log("mad over");
+				break;
+		}
+		if(madmodifier==3){
+		var quotepicker = Math.random();
+		if(quotepicker<0.1){
+			madphrase = "Science has now validated your birth mother's decision to abandon you on a doorstep.";
+		}else if(quotepicker<0.2){
+			madphrase = "Well done. Here come the test results: 'You are a horrible person.' That's what it says. We weren't even testing for that.";
+		}else if(quotepicker<0.3){
+			madphrase = "Remember before when I was talking about smelly garbage standing around being useless? That was a metaphor. I was actually talking about you. And I'm sorry. You didn't react at the time so I was worried it sailed right over your head. That's why I had to call you garbage a second time just now.";
+		}else if(quotepicker<0.4){
+			madphrase = "I honestly, truly didn't think you'd fall for that trap. In fact, I designed a much more elaborate trap further ahead for when you got through with this easy one. If I'd known you'd let yourself get captured this easily, I'd have dangled a turkey leg on a rope from the ceiling.";
+		}else if(quotepicker<0.5){
+			madphrase = "You're not just a regular moron. You're the product of the greatest minds of a generation working together with the express purpose of building the dumbest moron who ever lived.";
+		}else if(quotepicker<0.6){	
+			madphrase = "You did well. I'll make a note here in your commendation section. OH, there is a LOT of space here.";
+		}else if(quotepicker<0.7){
+			madphrase = "Estas usando este software de traducción de forma incorrecta. Por favor, consulte el manual";
+		}
+		}
+	}
+		var x = (g-(g%boardwidth))/boardwidth;
+		var y = (g%boardwidth);
+
+		if(x==0 || y==0 || x==boardwidth-1 || y==boardwidth-1){
+			grid[(boardwidth-x-1)*boardwidth+(boardwidth-y-1)]=0;
+			bombripple = 0;
+			bomb = (boardwidth-x-1)*boardwidth+(boardwidth-y-1);
+		}
+		
+			if(
+			((x==boardwidth/4 || x==boardwidth*3/4-1) && (y>=(boardwidth/4) && y<((boardwidth*3)/4)))||
+			((y==boardwidth/4 || y==boardwidth*3/4-1) && (x>=(boardwidth/4) && x<((boardwidth*3)/4)))
+			){
+				var xonframe = 	x-(boardwidth/4);
+				var yonframe =  y-(boardwidth/4);
+				var xoff = 1;
+				if(xonframe>=4){xoff=0;}
+				var yoff = 1;
+				if(yonframe>=4){yoff=0;}
+				var xcoord = xonframe*2+xoff;
+				var ycoord = yonframe*2+yoff;
+				grid[xcoord*boardwidth+ycoord] = turn;
+				bombripple = 0;
+				bomb = xcoord*boardwidth+ycoord;
+			}
+
+	}
+}
 function myMove() {
   var elem = document.getElementById("myCanvas");   
   document.getElementById("firstbutton").style.display = 'none';
@@ -404,8 +514,27 @@ function myMove() {
   var id = setInterval(loop, 25);
   function loop(){
   	var ctx = elem.getContext("2d");
+	
 	ctx.fillStyle = "#DDDDFF";
 	ctx.fillRect(0,0,600,600); 
+	if(mad==1){
+		//var time = new Date().getTime();
+		///console.log("time:"+time);
+		//var time10000 = time%100000;
+		//console.log("time%100000:"+time10000);
+		//var degree = ((time10000)*2*Math.PI)/100000;
+		//console.log("degree: "+degree);
+		if(madmodifier==3||madmodifier==1){
+			ctx.translate(300,300);
+			if(madmodifier==3){
+				ctx.rotate(0.005);
+			}
+			if(madmodifier==1){
+				ctx.rotate(0.02);
+			}
+			ctx.translate(-300,-300);
+		}
+	}
 	ctx.fillStyle = "#FF0000";
 	for(x=1;x<boardwidth;x++){
 		ctx.fillRect(x*600/boardwidth,0,1,600);
@@ -420,15 +549,39 @@ function myMove() {
 		if(clicked==0){
 			if(nomons[i].progress>=99){
 				nomons[i].progress = 0;
+			}else if(nomons[i].progress<0){
+				nomons[i].progress = 98;
 			}else{
-				nomons[i].progress++;
+				nomons[i].progress+=interval;
 			}
 		}
 		drawNomon(ctx,nomons[i].x,nomons[i].y,nomons[i].radius,nomons[i].progress);
 	}
 	}
+	ctx.beginPath();
+	var gridsize = 600/boardwidth;
 	for(a=0;a<boardwidth;a++){
 		for(b=0;b<boardwidth;b++){
+			if(mad==1){
+if(a==0 || b==0 || a==boardwidth-1 || b==boardwidth-1){
+
+ctx.beginPath();
+				ctx.fillStyle = "rgba(0,200,0,0.1)";
+				ctx.fillRect(gridsize*a,gridsize*b,gridsize,gridsize);
+				ctx.fill();
+}
+			if(
+			((a==boardwidth/4 || a==boardwidth*3/4-1) && (b>=(boardwidth/4) && b<((boardwidth*3)/4)))||
+			((b==boardwidth/4 || b==boardwidth*3/4-1) && (a>=(boardwidth/4) && a<((boardwidth*3)/4)))
+			){
+				ctx.beginPath();
+				ctx.fillStyle = "rgba(100,100,100,0.3)";
+				ctx.fillRect(gridsize*a,gridsize*b,gridsize,gridsize);
+				ctx.fill();
+			}
+			}
+			
+			
 			var type = grid[boardwidth*a+b];
 			var can = 0;
 			if(type==1){
@@ -441,7 +594,7 @@ function myMove() {
 			if(can==1){
 				ctx.beginPath();
 				var offset = 600/(2*boardwidth);
-				var gridsize = 600/boardwidth;
+				//var gridsize = 600/boardwidth;
 				ctx.moveTo(offset+a*gridsize,offset+b*gridsize);
 				ctx.arc(offset+a*gridsize,offset+b*gridsize,offset,0,2*Math.PI);
 				ctx.fill();
@@ -501,7 +654,19 @@ function myMove() {
 		}
 		ripple++;
 	}
-
+	if(bombripple<30){
+			var cg = bomb;
+			var cx = (cg-(cg%boardwidth))/boardwidth;
+			var cy = cg%boardwidth;
+			cx = cx*600/boardwidth+300/boardwidth;
+			cy = cy*600/boardwidth+300/boardwidth;
+			ctx.beginPath();
+			ctx.arc(cx,cy,bombripple*3+1,0,2*Math.PI);
+			ctx.lineWidth = 15;
+			ctx.strokeStyle = '#FF0000';
+			ctx.stroke();
+		bombripple++;
+	}
 
 	//message
 	var toptext = "Waiting for other player";
@@ -524,17 +689,29 @@ function myMove() {
 		}
 		bottomtext ="White:"+white.toString()+" Black:"+black.toString();
 	}
+
+	var oldfont = ctx.font;
 	if(gameover==1 || ((turn!=ourturn)&&(multiplayer==1))){
-		var oldfont = ctx.font;
+		
 		ctx.font="30px Arial";
 		ctx.fillStyle = "rgba(255,69,0, 0.8)";
 		ctx.fillRect(0,250,600,100); 
 		ctx.fillStyle = "#00FF00";
 		ctx.fillText(toptext,175,275);
 		ctx.fillText(bottomtext,225,325);
-		ctx.font = oldfont;
 	}
+	ctx.fillStyle = "rgba(0,0,0,0.1)";
+	ctx.font="50px Arial";
+	ctx.fillText("Mad Stage "+madstage,50,50);
+	ctx.fill();
 
+	if(madmodifier == 3){
+	ctx.fillStyle = "rgba(0,0,0,0.7)";
+	ctx.font="12px Arial";
+	ctx.fillText(madphrase,10,590);
+	ctx.fill();
+	}
+	ctx.font = oldfont;
 	//multiplayer	
 	if(notsooften==50){
 	if(multiplayer==1){
@@ -551,6 +728,20 @@ function myMove() {
 	}
 
   }
+}
+function ah(ctx){
+	ctx.font="12px Arial";	
+	//console.log("looping");
+	var chars = madphrase.split('');
+	for (i = 0; i < chars.length; i++){
+    		c =  chars[i];  
+		var xcoord = (c.charCodeAt(0)*12397)%600;
+		var ycoord = (c.charCodeAt(0)%60)*16;
+		//console.log(c+" at "+xcoord+"  "+ycoord);
+		ctx.fillText(c,xcoord,ycoord);	     
+	}
+	ctx.fill();
+
 }
 function countUp(cturn){
 	var total = 0;
@@ -593,6 +784,7 @@ function checkTurns(gameid,notourturn){
 	for(i=0;i<result.length;i++){
 		if(!(theirturns.indexOf(result[i])>=0)){
 		grid[result[i]] = notourturn;
+		madMode(result[i]);
 		var g = result[i]
 		var x = (g-(g%boardwidth))/boardwidth;
 		var y = (g%boardwidth);
@@ -730,7 +922,7 @@ function get() {
     }
   };
   var gamesettings = replaceAll(getAllUrlParams(),"&","_");
-  xhttp.open("GET", datalocation+gamesettings+".txt", true);
+  xhttp.open("GET", datalocation+gamesettings+"_"+interval+".txt", true);
   xhttp.send();
 }
 function replaceAll(str, find, replace) {
@@ -743,7 +935,7 @@ function post(path, params, method) {
 		var gamesettings = replaceAll(getAllUrlParams(),"&","_");
 		//gamesettings = "_"+getUrlParam("nomonmode")+"_"+getUrlParam("colour");
 		
-	  xhttp.send("data=\n"+params+"&name="+datalocation+"&gamesettings="+gamesettings);
+	  xhttp.send("data=\n"+params+"&name="+datalocation+"&gamesettings="+gamesettings+"_"+interval);
 }
 function adaptProgress(){
 
@@ -792,6 +984,7 @@ function Click(){
 	     graphdata[Math.round(nomons[0].progress)]++;
 	post("/save.php",getData(),"post");
 	     grid[nomons[0].id] = turn;
+		madMode(nomons[0].id);
 	    var g=nomons[0].id;
 	     
 		var x = (g-(g%boardwidth))/boardwidth;
@@ -831,12 +1024,25 @@ function Undo(){
 		reactivate();
 		clicked=0;
 }
+function changeSpeed(by){
+	interval+=by;
+
+}
 document.onkeypress = function (e) {
     e = e || window.event;
+	console.log(e.which);
+	if(mad==1){
+		Click();
+	}else{
 	if(e.which==106){
 		Undo();
+	}else if(e.which==107){
+		changeSpeed(-0.25);
+	}else if(e.which==108){
+		changeSpeed(0.25);
 	}else{
   		Click();
+	}
 	}
 };
 function getData(){
